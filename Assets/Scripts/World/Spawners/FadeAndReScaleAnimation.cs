@@ -1,44 +1,51 @@
 using System.Collections;
 using UnityEngine;
 
-public static class FadeAndReScaleAnimation 
+public static class FadeAndReScaleAnimation
 {
-    public static IEnumerator FadeInAndScaleCoroutine(Transform transform, CanvasGroup canvasGroup, float fadeDuration, float scaleDuration)
+    private static readonly Vector3 _directionOffset= new Vector3(0, -2, 0);
+
+    public static IEnumerator FadeInAndScaleCoroutine(Transform transform, CanvasGroup canvasGroup, float fadeDuration)
     {
-        Vector3 originalScale = transform.localScale;
+        Vector3 targetScale = transform.localScale;
+        Vector3 originalPosition = transform.localPosition + (Vector3.up * 2);
+
+        transform.localPosition += _directionOffset;
+        canvasGroup.alpha = 0f;
+
         float startTime = Time.time;
-        float startAlpha = canvasGroup.alpha;
-        Vector3 startScale = transform.localScale;
-        transform.gameObject.SetActive(true);
 
         while (Time.time - startTime < fadeDuration)
         {
             float t = (Time.time - startTime) / fadeDuration;
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, 1f, t);
-            transform.localScale = Vector3.Lerp(startScale, originalScale, t);
+            canvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
+            transform.localScale = Vector3.Lerp(Vector3.zero, targetScale, t);
+            transform.localPosition = Vector3.Lerp(originalPosition + _directionOffset, originalPosition, t);
             yield return null;
         }
 
+        transform.localPosition = originalPosition;
+        transform.localScale = targetScale;
         canvasGroup.alpha = 1f;
-        transform.localScale = originalScale;
     }
 
-    public static IEnumerator FadeOutAndScaleCoroutine(Transform transform, CanvasGroup canvasGroup, float fadeDuration, float scaleDuration)
+    public static IEnumerator FadeOutAndScaleCoroutine(Transform transform, CanvasGroup canvasGroup, float fadeDuration)
     {
+        Vector3 originalPosition = transform.localPosition;
+
         float startTime = Time.time;
-        float startAlpha = canvasGroup.alpha;
-        Vector3 startScale = transform.localScale;
 
         while (Time.time - startTime < fadeDuration)
         {
             float t = (Time.time - startTime) / fadeDuration;
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, t);
-            transform.localScale = Vector3.Lerp(startScale, Vector3.zero, t);
+            canvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
+            transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, t);
+            transform.localPosition = Vector3.Lerp(originalPosition, originalPosition + (Vector3.down * 2) - _directionOffset, t);
             yield return null;
         }
 
-        canvasGroup.alpha = 0f;
+        transform.localPosition = originalPosition + _directionOffset;
         transform.localScale = Vector3.zero;
-        transform.gameObject.SetActive(false);
+        canvasGroup.alpha = 0f;
     }
 }

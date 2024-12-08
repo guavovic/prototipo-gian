@@ -2,17 +2,17 @@ using UnityEngine;
 
 public sealed class NotificationPopUpSpawnPoints : MonoBehaviour
 {
-    public static ServiceNotificationPopUpSpawnPoint[] ServiceNotificationPopUpSpawnPoints { get; private set; }
+    public static NotificationPopUpSpawnPoint[] ServiceNotificationPopUpSpawnPoints { get; private set; }
 
     private void Awake()
     {
         if (transform.childCount > 0)
         {
-            ServiceNotificationPopUpSpawnPoint[] serviceNotificationPopUpSpawnPoints = GetComponentsInChildren<ServiceNotificationPopUpSpawnPoint>();
+            NotificationPopUpSpawnPoint[] serviceNotificationPopUpSpawnPoints = GetComponentsInChildren<NotificationPopUpSpawnPoint>();
 
             if (serviceNotificationPopUpSpawnPoints != null)
             {
-                ServiceNotificationPopUpSpawnPoints = new ServiceNotificationPopUpSpawnPoint[transform.childCount];
+                ServiceNotificationPopUpSpawnPoints = new NotificationPopUpSpawnPoint[transform.childCount];
                 ServiceNotificationPopUpSpawnPoints = serviceNotificationPopUpSpawnPoints;
             }
             else
