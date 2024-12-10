@@ -4,14 +4,15 @@ using UnityEngine;
 
 [RequireComponent(typeof(Canvas))]
 [RequireComponent(typeof(CanvasGroup))]
-public sealed class ServiceNotificationPopUp : MonoBehaviour
+public sealed class OrderNotification : MonoBehaviour
 {
     private readonly float _fadeDuration = 0.5f;
     private CanvasGroup _canvasGroup;
     private UIImageColorChanger _uIImageColorChanger;
     private TextMeshProUGUI _timer_textMeshPro;
 
-    public Service Service { get; private set; }
+    public Order Order { get; private set; }
+    public int AvailableIndex { get; private set; }
 
     private void Awake()
     {
@@ -20,9 +21,14 @@ public sealed class ServiceNotificationPopUp : MonoBehaviour
         _timer_textMeshPro = GetComponentInChildren<TextMeshProUGUI>();
     }
 
-    public void Init(Service service)
+    public void Setup(Order service, int availableIndex)
     {
-        Service = service;
+        Order = service;
+        AvailableIndex = availableIndex;
+    }
+
+    public void Init()
+    {
         StartTimer();
     }
 
@@ -42,19 +48,19 @@ public sealed class ServiceNotificationPopUp : MonoBehaviour
 
         float elapsedTime = 0f;
 
-        while (elapsedTime < Service.Duration)
+        while (elapsedTime < Order.Duration)
         {
             elapsedTime += Time.deltaTime;
 
             string seconds = ((int)elapsedTime).ToString("D2");
             string milliseconds = ((elapsedTime * 1000 % 1000) / 10).ToString("00");
             _timer_textMeshPro.text = $"{seconds}s{milliseconds}";
-            _uIImageColorChanger.UpdateImageColor(elapsedTime / Service.Duration);
+            _uIImageColorChanger.UpdateImageColor(elapsedTime / Order.Duration);
             yield return null;
         }
 
         yield return StartCoroutine(FadeAndReScaleAnimation.FadeOutAndScaleCoroutine(transform, _canvasGroup, _fadeDuration));
-        Service.ExpireService();
+        Order.Expire();
         transform.gameObject.SetActive(false);
     }
 }

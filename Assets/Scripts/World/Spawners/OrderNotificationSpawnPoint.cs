@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class NotificationPopUpSpawnPoint : MonoBehaviour
+public sealed class OrderNotificationSpawnPoint : MonoBehaviour
 {
     public Vector3 GetPosition()
     {

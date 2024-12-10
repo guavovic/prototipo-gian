@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1096456885759366289}
   - component: {fileID: 4062989581255808064}
   m_Layer: 0
-  m_Name: ServiceNotificationPopUpSpawnPoint
+  m_Name: OrderNotificationSpawnPoint
   m_TagString: Untagged
   m_Icon: {fileID: 5721338939258241955, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -41,6 +41,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 3266945539164801805}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1aafaf56ad47a3145a9e61e2c4982e9f, type: 3}
+  m_Script: {fileID: 11500000, guid: 017cccc2d1ffc174786049171842f192, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
