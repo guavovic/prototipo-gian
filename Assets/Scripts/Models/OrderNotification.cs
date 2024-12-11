@@ -46,6 +46,11 @@ public sealed class OrderNotification : MonoBehaviour, IInteractable
         StopCoroutine(ServiceTimerCoroutine());
     }
 
+    public void Interact()
+    {
+        OnOpen?.Invoke(Order);
+    }
+
     private IEnumerator ServiceTimerCoroutine()
     {
         // TODO: Refatorar codigo completo
@@ -72,10 +77,5 @@ public sealed class OrderNotification : MonoBehaviour, IInteractable
         yield return StartCoroutine(FadeAndReScaleAnimation.FadeOutAndScaleCoroutine(transform, _canvasGroup, _fadeDuration));
         Order.Expire();
         transform.gameObject.SetActive(false);
-    }
-
-    public void Interact()
-    {
-        OnOpen?.Invoke(Order);
     }
 }
