@@ -8,7 +8,7 @@ public static class FadeAndReScaleAnimation
     public static IEnumerator FadeInAndScaleCoroutine(Transform transform, CanvasGroup canvasGroup, float fadeDuration)
     {
         Vector3 targetScale = transform.localScale;
-        Vector3 originalPosition = transform.localPosition + (Vector3.up * 2);
+        Vector3 originalPosition = transform.localPosition + (Vector3.up * 1);
 
         transform.localPosition += _directionOffset;
         canvasGroup.alpha = 0f;
@@ -40,7 +40,7 @@ public static class FadeAndReScaleAnimation
             float t = (Time.time - startTime) / fadeDuration;
             canvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
             transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, t);
-            transform.localPosition = Vector3.Lerp(originalPosition, originalPosition + (Vector3.down * 2) - _directionOffset, t);
+            transform.localPosition = Vector3.Lerp(originalPosition, originalPosition + (Vector3.down * 1) - _directionOffset, t);
             yield return null;
         }
 

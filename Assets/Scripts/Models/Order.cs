@@ -3,7 +3,7 @@ using System;
 public class Order : IStatus
 {
     public int Id { get; private set; }
-    public Car Car { get; private set; }
+    public VehicleCharacteristics Item { get; private set; }
     public float Duration { get; private set; }
     public Status CurrentStatus { get; set; }
 
@@ -16,10 +16,10 @@ public class Order : IStatus
     public delegate void AlertTime(Order order);
     public event AlertTime OnAlertTime;
 
-    public Order(int id, Car car, float duration)
+    public Order(int id, VehicleCharacteristics item, float duration)
     {
         Id = id;
-        Car = car;
+        Item = item;
         Duration = duration;
     }
 

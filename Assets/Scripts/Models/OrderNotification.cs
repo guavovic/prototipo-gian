@@ -4,7 +4,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Canvas))]
 [RequireComponent(typeof(CanvasGroup))]
-public sealed class OrderNotification : MonoBehaviour
+public sealed class OrderNotification : MonoBehaviour, IInteractable
 {
     private readonly float _fadeDuration = 0.5f;
     private CanvasGroup _canvasGroup;
@@ -13,6 +13,10 @@ public sealed class OrderNotification : MonoBehaviour
 
     public Order Order { get; private set; }
     public int AvailableIndex { get; private set; }
+    public Vector3 InteractionPoint { get; set; }
+
+    public delegate void Open(Order order);
+    public static event Open OnOpen;
 
     private void Awake()
     {
@@ -44,12 +48,18 @@ public sealed class OrderNotification : MonoBehaviour
 
     private IEnumerator ServiceTimerCoroutine()
     {
+        // TODO: Refatorar codigo completo
         yield return StartCoroutine(FadeAndReScaleAnimation.FadeInAndScaleCoroutine(transform, _canvasGroup, _fadeDuration));
 
         float elapsedTime = 0f;
 
         while (elapsedTime < Order.Duration)
         {
+            while (GameState.IsPaused)
+            {
+                yield return null;
+            }
+
             elapsedTime += Time.deltaTime;
 
             string seconds = ((int)elapsedTime).ToString("D2");
@@ -62,5 +72,10 @@ public sealed class OrderNotification : MonoBehaviour
         yield return StartCoroutine(FadeAndReScaleAnimation.FadeOutAndScaleCoroutine(transform, _canvasGroup, _fadeDuration));
         Order.Expire();
         transform.gameObject.SetActive(false);
+    }
+
+    public void Interact()
+    {
+        OnOpen?.Invoke(Order);
     }
 }

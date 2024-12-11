@@ -61,9 +61,10 @@ public class OrderController : MonoBehaviour
 
     private void GenerateOrder()
     {
+        // TODO: Melhorar logica das caracteristicas do veiculo
         var newOrder = new Order(
             id: _services.Count,
-            car: new Car("Fox", Color.green),
+            item: new VehicleCharacteristics("Fox", null, Color.green),
             duration: Random.Range(30f, 60f)
         );
 

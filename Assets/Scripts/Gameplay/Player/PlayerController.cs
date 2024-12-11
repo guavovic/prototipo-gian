@@ -1,18 +1,34 @@
-using System.Collections;
-using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEngine;
+using UnityEngine.AI;
+using System;
 
-public class PlayerController : MonoBehaviour
+[RequireComponent(typeof(MeshCollider))]
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(NavMeshModifier))]
+public sealed class PlayerController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private NavMeshAgent _navMeshAgent;
+
+    private void Awake()
     {
-        
+        _navMeshAgent = GetComponent<NavMeshAgent>();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void MoveToPosition(Vector3 targetPosition, Action onComplete)
     {
-        
+        _navMeshAgent.SetDestination(targetPosition);
+        StartCoroutine(CheckArrival(onComplete));
+    }
+
+    private System.Collections.IEnumerator CheckArrival(Action onComplete)
+    {
+        while (_navMeshAgent.pathPending || _navMeshAgent.remainingDistance > _navMeshAgent.stoppingDistance)
+        {
+            yield return null;
+        }
+
+        onComplete?.Invoke();
     }
 }

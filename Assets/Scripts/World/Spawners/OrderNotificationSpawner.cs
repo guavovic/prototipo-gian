@@ -6,7 +6,6 @@ public sealed class OrderNotificationSpawner : MonoBehaviour
     [SerializeField] private OrderNotification orderNotificationPrefab;
 
     private OrderNotificationSpawnPoint[] _spawnPoints;
-    private Camera _mainCamera;
 
     private readonly List<OrderNotification> _activeNotifications = new List<OrderNotification>();
     private readonly HashSet<int> _occupiedPositions = new HashSet<int>();
@@ -16,23 +15,15 @@ public sealed class OrderNotificationSpawner : MonoBehaviour
         _spawnPoints = FindObjectsOfType<OrderNotificationSpawnPoint>(true);
     }
 
-    private void Start()
-    {
-        _mainCamera = Camera.main;
-
-        if (_mainCamera == null)
-        {
-            Debug.LogError("Main camera not found!");
-        }
-    }
-
     public void SpawnNotification(Order order)
     {
         int availableIndex = GetAvailablePositionIndex();
 
         if (availableIndex == -1)
         {
+#if UNITY_EDITOR
             Debug.LogWarning("No available spawn points for order notifications.");
+#endif
             return;
         }
 
@@ -41,14 +32,14 @@ public sealed class OrderNotificationSpawner : MonoBehaviour
         GameObject notificationGO = Instantiate(
             orderNotificationPrefab.gameObject,
             position,
-            Quaternion.Euler(-_mainCamera.transform.position.x, _mainCamera.transform.position.y, 0)
+            Quaternion.Euler(60, -90, 0)
         );
 
-        var orderNotification = notificationGO.GetComponent<OrderNotification>();
-
-        if (orderNotification == null)
+        if (!notificationGO.TryGetComponent<OrderNotification>(out var orderNotification))
         {
+#if UNITY_EDITOR
             Debug.LogError("OrderNotification component is missing on the prefab!");
+#endif
             return;
         }
 
