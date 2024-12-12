@@ -1,26 +1,104 @@
+using Prototype.Data;
+using System.Collections.Generic;
+using System;
 using UnityEngine;
 
-public abstract class Vehicle : MonoBehaviour, IDrivable
+namespace Prototype.Models
 {
-    protected float DriveSpeed { get; private set; } = 10f;
-    protected float RotationSpeed { get; private set; } = 100f;
-
-    public VehicleCharacteristics VehicleCharacteristics { get; private set; }
-
-    public void Setup(VehicleCharacteristics vehicleCharacteristics)
+    [RequireComponent(typeof(Rigidbody))]
+    public abstract class Vehicle : MonoBehaviour
     {
-        VehicleCharacteristics = vehicleCharacteristics;
-    }
+        public enum Axel
+        {
+            Front,
+            Rear
+        }
 
-    public void Move(Vector3 direction, float speed)
-    {
-        Vector3 movement = speed * Time.deltaTime * direction;
-        transform.Translate(movement, Space.World);
-    }
+        [Serializable]
+        public struct Wheel
+        {
+            public GameObject wheerModel;
+            public WheelCollider wheelCollider;
+            public Axel axel;
+        }
 
-    public void Rotate(Vector3 forward, float speed)
-    {
-        Quaternion targetRotation = Quaternion.LookRotation(forward);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, speed * Time.deltaTime);
+        [SerializeField] private List<Wheel> wheels;
+
+        private Rigidbody _rigidbody;
+
+        public VehicleCharacteristicsData Characteristics { get; private set; }
+
+        public float MaxAcceleration { get; private set; } = 30f;
+        public float BrakeAcceleration { get; private set; } = 10f;
+        public float TurnSensitivity { get; private set; } = 1f;
+        public float MaxSteerAngle { get; private set; } = 45f;
+        public Vector3 CenterOfMass { get; private set; }
+
+        public void Setup(VehicleCharacteristicsData characteristics)
+        {
+            Characteristics = characteristics;
+        }
+
+        private void Awake()
+        {
+            _rigidbody = GetComponent<Rigidbody>();
+        }
+
+        protected void Move(Vector3 inputDirection)
+        {
+            foreach (var wheel in wheels)
+            {
+                wheel.wheelCollider.motorTorque = inputDirection.z * 50 * MaxAcceleration * Time.deltaTime;
+
+            }
+        }
+
+        protected void Steer(Vector3 inputDirection)
+        {
+            foreach (var wheel in wheels)
+            {
+                if (wheel.axel == Axel.Front)
+                {
+                    var steerAngle = inputDirection.x * TurnSensitivity * MaxSteerAngle;
+                    wheel.wheelCollider.steerAngle = Mathf.Lerp(wheel.wheelCollider.steerAngle, steerAngle, 0.6f);
+                }
+            }
+        }
+
+        protected void Brake(Vector3 inputDirection, bool forceBreak = false)
+        {
+            if ((inputDirection.z < 0 && _rigidbody.velocity.z > 0.1f) || forceBreak)
+            {
+                foreach (var wheel in wheels)
+                {
+                    wheel.wheelCollider.brakeTorque = 25 * BrakeAcceleration * Time.deltaTime;
+                }
+            }
+            else
+            {
+                foreach (var wheel in wheels)
+                {
+                    wheel.wheelCollider.brakeTorque = 0;
+                }
+
+                if (_rigidbody.velocity.z < 0.1f && inputDirection.z < 0)
+                {
+                    foreach (var wheel in wheels)
+
+                    {
+                        wheel.wheelCollider.motorTorque = inputDirection.z * 15 * MaxAcceleration * Time.deltaTime;
+                    }
+                }
+            }
+        }
+
+        protected void AnimateWheels()
+        {
+            foreach (var wheel in wheels)
+            {
+                wheel.wheelCollider.GetWorldPose(out Vector3 position, out Quaternion quaternion);
+                wheel.wheerModel.transform.SetPositionAndRotation(position, quaternion);
+            }
+        }
     }
 }

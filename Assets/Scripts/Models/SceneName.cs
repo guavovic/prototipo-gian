@@ -1,8 +1,11 @@
-public enum SceneName
+namespace Prototype.Models
 {
-    None,
-    Intro,
-    Splash,
-    Office,
-    Parking,
+    public enum SceneName
+    {
+        None,
+        Intro,
+        Splash,
+        Office,
+        Parking,
+    }
 }

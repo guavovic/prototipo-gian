@@ -1,52 +1,86 @@
-using TMPro;
+using Prototype.Managers;
+using Prototype.Models;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class OrderSummaryUI : MonoBehaviour
+namespace Prototype.UI
 {
-    [SerializeField] private GameObject orderSummaryPanel;
-    [SerializeField] private Button closeButton;
-    [SerializeField] private TextMeshProUGUI itemNametextMeshProUGUI;
-    [SerializeField] private Image itemReferenceImage;
-    [SerializeField] private Button startRequestButton;
-
-    private void OnEnable()
+    public sealed class OrderSummaryUI : MonoBehaviour
     {
-        OrderNotification.OnOpen += Show;
-        closeButton.onClick.AddListener(Close);
-        startRequestButton.onClick.AddListener(StartRequest);
-    }
+        [SerializeField] private OrderUI orderUIPrefab;
+        [Space(10f)]
+        [SerializeField] private GameObject orderSummaryPanel;
+        [SerializeField] private Transform orderUIsPanelParent;
+        [SerializeField] private Button closeButton;
+        [SerializeField] private Button startRequestButton;
 
-    private void OnDisable()
-    {
-        OrderNotification.OnOpen -= Show;
-        closeButton.onClick.RemoveListener(Close);
-        startRequestButton.onClick.RemoveListener(StartRequest);
-    }
+        private Order _currentOrderSelected;
+        private OrderUI[] _orderUIs;
 
-    private void Start()
-    {
-        orderSummaryPanel.SetActive(false);
-    }
+        private void OnEnable()
+        {
+            OrderNotificationUI.OnOpen += Show;
+            closeButton.onClick.AddListener(Close);
+            startRequestButton.onClick.AddListener(StartRequest);
+        }
 
-    private void Show(Order order)
-    {
-        GameState.SetState(GameStatus.Paused);
+        private void OnDisable()
+        {
+            OrderNotificationUI.OnOpen -= Show;
+            closeButton.onClick.RemoveListener(Close);
+            startRequestButton.onClick.RemoveListener(StartRequest);
+        }
 
-        itemNametextMeshProUGUI.text = order.Item.Name;
-        itemReferenceImage.sprite = order.Item.Sprite;
+        private void Awake()
+        {
+            _orderUIs = new OrderUI[6];
 
-        orderSummaryPanel.SetActive(true);
-    }
+            for (int i = 0; i < _orderUIs.Length; i++)
+            {
+                _orderUIs[i] = Instantiate(orderUIPrefab, orderUIsPanelParent);
+            }
+        }
 
-    private void Close()
-    {
-        GameState.SetState(GameStatus.Playing);
-        orderSummaryPanel.SetActive(false);
-    }
+        private void Start()
+        {
+            orderSummaryPanel.SetActive(false);
+        }
 
-    private void StartRequest()
-    {
-        SceneLoaderManager.Instance.InitializeSceneTransition(SceneName.Parking);
+        private void Show(Order order)
+        {
+            GameManager.GameState.SetState(GameStatus.Paused);
+
+            _currentOrderSelected = order;
+
+            for (int i = 0; i < _orderUIs.Length; i++)
+            {
+                var orderIU = _orderUIs[i];
+
+                if (i < order.Items.Length)
+                {
+                    var item = order.Items[i];
+                    orderIU.Setup(item.name, item.Sprite);
+                    orderIU.gameObject.SetActive(true);
+                }
+                else
+                {
+                    orderIU.gameObject.SetActive(false);
+                }
+            }
+
+            orderSummaryPanel.SetActive(true);
+        }
+
+        private void Close()
+        {
+            GameManager.GameState.SetState(GameStatus.Playing);
+            orderSummaryPanel.SetActive(false);
+        }
+
+        private void StartRequest()
+        {
+            GameManager.SetCurrentOrderSelected(_currentOrderSelected);
+            GameManager.SwitchScene(SceneName.Parking);
+        }
     }
 }

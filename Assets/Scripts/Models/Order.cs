@@ -1,37 +1,40 @@
-using System;
+using Prototype.Data;
 
-public class Order : IStatus
+namespace Prototype.Models
 {
-    public int Id { get; private set; }
-    public VehicleCharacteristics Item { get; private set; }
-    public float Duration { get; private set; }
-    public Status CurrentStatus { get; set; }
-
-    public delegate void Expired(Order order);
-    public event Expired OnExpired;
-
-    public delegate void Delivered(Order order);
-    public event Delivered OnDelivered;
-
-    public delegate void AlertTime(Order order);
-    public event AlertTime OnAlertTime;
-
-    public Order(int id, VehicleCharacteristics item, float duration)
+    public sealed class Order
     {
-        Id = id;
-        Item = item;
-        Duration = duration;
-    }
+        public int Id { get; private set; }
+        public VehicleCharacteristicsData[] Items { get; private set; }
+        public float ResponseTimeLimit { get; private set; }
+        public OrderStatus CurrentStatus { get; private set; }
 
-    public void Delivery()
-    {
-        CurrentStatus = Status.Complete;
-        OnDelivered?.Invoke(this);
-    }
+        public delegate void Expired(Order order);
+        public event Expired OnExpired;
 
-    public void Expire()
-    {
-        CurrentStatus = Status.Expired;
-        OnExpired?.Invoke(this);
+        public delegate void Delivered(Order order);
+        public event Delivered OnDelivered;
+
+        public delegate void AlertTime(Order order);
+        public event AlertTime OnAlertTime;
+
+        public Order(int id, VehicleCharacteristicsData[] items, float responseTimeLimit)
+        {
+            Id = id;
+            Items = items;
+            ResponseTimeLimit = responseTimeLimit;
+        }
+
+        public void Delivery()
+        {
+            CurrentStatus = OrderStatus.Complete;
+            OnDelivered?.Invoke(this);
+        }
+
+        public void Expire()
+        {
+            CurrentStatus = OrderStatus.Expired;
+            OnExpired?.Invoke(this);
+        }
     }
 }

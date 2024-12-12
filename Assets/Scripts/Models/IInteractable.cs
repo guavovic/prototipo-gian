@@ -1,8 +1,11 @@
 using UnityEngine;
 
-public interface IInteractable
+namespace Prototype.Models
 {
-    Vector3 InteractionPoint { get; set; }
+    public interface IInteractable
+    {
+        Vector3 InteractionPoint { get; set; }
 
-    void Interact();
+        void Interact();
+    }
 }

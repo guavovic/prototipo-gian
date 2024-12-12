@@ -1,33 +1,36 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(RectTransform))]
-[RequireComponent(typeof(CanvasRenderer))]
-[RequireComponent(typeof(Image))]
-public sealed class UIImageColorChanger : MonoBehaviour
+namespace Prototype.UI
 {
-    [SerializeField] private Gradient colorGradient;
-
-    private Gradient colorGradientCopy;
-    private Image _targetImage;
-
-    private void Awake()
+    [RequireComponent(typeof(RectTransform))]
+    [RequireComponent(typeof(CanvasRenderer))]
+    [RequireComponent(typeof(Image))]
+    public sealed class UIImageColorChanger : MonoBehaviour
     {
-        _targetImage = GetComponent<Image>();
-    }
-    private void OnEnable()
-    {
-        colorGradientCopy = colorGradient;
-    }
+        [SerializeField] private Gradient colorGradient;
 
-    private void OnDisable()
-    {
-        colorGradientCopy = colorGradient;
-    }
+        private Gradient colorGradientCopy;
+        private Image _targetImage;
 
-    public void UpdateImageColor(float value)
-    {
-        value = Mathf.Clamp01(value);
-        _targetImage.color = colorGradientCopy.Evaluate(value);
+        private void Awake()
+        {
+            _targetImage = GetComponent<Image>();
+        }
+        private void OnEnable()
+        {
+            colorGradientCopy = colorGradient;
+        }
+
+        private void OnDisable()
+        {
+            colorGradientCopy = colorGradient;
+        }
+
+        public void UpdateImageColor(float value)
+        {
+            value = Mathf.Clamp01(value);
+            _targetImage.color = colorGradientCopy.Evaluate(value);
+        }
     }
 }

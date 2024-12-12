@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58f6d8a4029c17b47a6d9bff92e5f9a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dontDestroyOnLoad: 1
   allSceneList:
   - sceneAsset: {fileID: 102900000, guid: 1e0d1d34634e485488cc5c21ea3950b6, type: 3}
     sceneName: Splash
@@ -51,4 +52,3 @@ MonoBehaviour:
     sceneName: Office
   - sceneAsset: {fileID: 102900000, guid: c57b45a5eb823aa4d85124f66eb4a249, type: 3}
     sceneName: Parking
-  fadeDuration: 3

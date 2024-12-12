@@ -1,8 +1,11 @@
 using UnityEngine;
 
-public sealed class InteractivePlace : MonoBehaviour, IInteractable
+namespace Prototype.Appliances
 {
-    public Vector3 InteractionPoint { get; set; }
+    public sealed class InteractivePlace : MonoBehaviour, Models.IInteractable
+    {
+        public Vector3 InteractionPoint { get; set; }
 
-    public void Interact() { }
+        public void Interact() { }
+    }
 }

@@ -1,107 +1,103 @@
 using Prototype.Data;
+using Prototype.Models;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class OrderManager : MonoBehaviour
+namespace Prototype.Managers
 {
-    [SerializeField] private VehicleCharacteristicsData[] characteristicsData;
-
-    private const int MAX_SERVICES = 3;
-    private readonly List<Order> _services = new List<Order>();
-    private Coroutine _generateOrderCoroutine;
-
-    private OrderNotificationSpawner _notificationSpawner;
-
-    private void Awake()
+    public sealed class OrderManager : MonoBehaviour
     {
-        _notificationSpawner = FindObjectOfType<OrderNotificationSpawner>();
+        [SerializeField] private VehicleCharacteristicsData[] characteristicsData;
 
-        if (_notificationSpawner == null)
+        private readonly List<Order> _orders = new List<Order>();
+
+        public static event System.Action<Order> OnNewOrderGenerated;
+
+        private void OnEnable()
         {
-            Debug.LogError("OrderNotificationSpawner not found in the scene!");
+            GameManager.OnGameStarted += StartOrderGeneration;
         }
-    }
 
-    private void Start()
-    {
-        StartOrderGeneration();
-    }
-
-    public void StartOrderGeneration()
-    {
-        if (_generateOrderCoroutine == null)
+        private void OnDisable()
         {
-            _generateOrderCoroutine = StartCoroutine(GenerateOrderRoutine());
+            GameManager.OnGameStarted -= StartOrderGeneration;
         }
-    }
 
-    public void StopOrderGeneration()
-    {
-        if (_generateOrderCoroutine != null)
+        public void StartOrderGeneration()
         {
-            StopCoroutine(_generateOrderCoroutine);
-            _generateOrderCoroutine = null;
+            StartCoroutine(GenerateOrderRoutine());
         }
-    }
 
-    private IEnumerator GenerateOrderRoutine()
-    {
-        while (true)
+        public void StopOrderGeneration()
         {
-            yield return new WaitForSeconds(Random.Range(2f, 4f));
+            StopCoroutine(GenerateOrderRoutine());
+        }
 
-            while (GameState.IsPaused)
+        private IEnumerator GenerateOrderRoutine()
+        {
+            while (true)
             {
-                yield return null;
-            }
+                yield return new WaitForSeconds(Random.Range(2f, 4f));
 
-            if (CanGenerateOrder())
-            {
-                GenerateOrder();
+                while (GameManager.GameState.IsPaused)
+                {
+                    yield return null;
+                }
+
+                if (CanGenerateOrder())
+                {
+                    GenerateOrder();
+                }
             }
         }
-    }
 
-    private bool CanGenerateOrder()
-    {
-        return _services.Count < MAX_SERVICES && _notificationSpawner.HasAvailablePosition();
-    }
-
-    private void GenerateOrder()
-    {
-        // TODO: Melhorar logica das caracteristicas do veiculo
-        var characteristicData = characteristicsData[Random.Range(0, characteristicsData.Length)];
-
-        var newOrder = new Order(
-            id: _services.Count,
-            item: characteristicData,
-            duration: Random.Range(30f, 60f)
-        );
-
-        _services.Add(newOrder);
-        SubscribeOrderEvents(newOrder);
-        _notificationSpawner.SpawnNotification(newOrder);
-    }
-
-    private void RemoveOrder(Order order)
-    {
-        if (_services.Contains(order))
+        private bool CanGenerateOrder()
         {
-            _services.Remove(order);
-            UnsubscribeOrderEvents(order);
+            return _orders.Count < GameManager.MAXIMUM_ACTIVE_ORDERS_SIMULTANEOUSLY && OrderNotificationUIManager.HasAvailablePosition();
         }
-    }
 
-    private void SubscribeOrderEvents(Order order)
-    {
-        order.OnDelivered += RemoveOrder;
-        order.OnExpired += RemoveOrder;
-    }
+        private void GenerateOrder()
+        {
+            int id = _orders.Count;
 
-    private void UnsubscribeOrderEvents(Order order)
-    {
-        order.OnDelivered -= RemoveOrder;
-        order.OnExpired -= RemoveOrder;
+            var vehicleCharacteristicsDatas = new VehicleCharacteristicsData[Random.Range(GameManager.MIN_VEHICLE_COUNT, GameManager.MAX_VEHICLE_COUNT)];
+
+            for (int i = 0; i < vehicleCharacteristicsDatas.Length; i++)
+            {
+                vehicleCharacteristicsDatas[i] = characteristicsData[Random.Range(0, characteristicsData.Length)];
+            }
+
+            const float minResponseTimeLimit = 10f;
+            const float maxResponseTimeLimit = 20f;
+            float responseTimeLimit = Random.Range(minResponseTimeLimit, maxResponseTimeLimit);
+
+            var newOrder = new Order(id, vehicleCharacteristicsDatas, responseTimeLimit);
+
+            _orders.Add(newOrder);
+            OnNewOrderGenerated?.Invoke(newOrder);
+            SubscribeOrderEvents(newOrder);
+        }
+
+        private void RemoveOrder(Order order)
+        {
+            if (_orders.Contains(order))
+            {
+                _orders.Remove(order);
+                UnsubscribeOrderEvents(order);
+            }
+        }
+
+        private void SubscribeOrderEvents(Order order)
+        {
+            order.OnDelivered += RemoveOrder;
+            order.OnExpired += RemoveOrder;
+        }
+
+        private void UnsubscribeOrderEvents(Order order)
+        {
+            order.OnDelivered -= RemoveOrder;
+            order.OnExpired -= RemoveOrder;
+        }
     }
 }

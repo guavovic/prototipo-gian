@@ -1,67 +1,66 @@
+using Prototype.Models;
+using Prototype.UI;
+using Prototype.Utils;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public sealed class SceneLoaderManager : MonoBehaviour
+namespace Prototype.Managers
 {
-    [SerializeField] private List<SceneField> allSceneList;
-
-    public SceneField CurrentScene { get; private set; }
-    public AsyncOperation AsyncLoad { get; private set; }
-
-    public static SceneLoaderManager Instance { get; private set; }
-
-    private void Awake()
+    public sealed class SceneLoaderManager : Singleton<SceneLoaderManager>
     {
-        if (Instance == null)
+        [SerializeField] private List<SceneField> allSceneList;
+
+        public SceneField CurrentScene { get; private set; }
+        public AsyncOperation AsyncLoad { get; private set; }
+
+        public event Action OnSceneTransitionStart;
+        public event Action OnSceneLoading;
+        public event Action OnSceneLoaded;
+
+        public SceneField FindScenePerName(SceneName sceneName)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            return allSceneList.Find(s => s.SceneName == sceneName);
         }
-        else
+
+        public void InitializeSceneTransition(SceneName sceneName)
         {
-            Destroy(gameObject);
+            GameManager.GameState.SetState(GameStatus.LoadingNewScene);
+            ExecuteSceneTransition(sceneName);
+            GameManager.GameState.SetState(GameStatus.None);
         }
-    }
 
-    public SceneField FindScenePerName(SceneName sceneName)
-    {
-        return allSceneList.Find(s => s.SceneName == sceneName);
-    }
+        private void ExecuteSceneTransition(SceneName sceneName)
+        {
+            StartCoroutine(PerfomLoadSceneAsync(FindScenePerName(sceneName)));
+        }
 
-    public void InitializeSceneTransition(SceneName sceneName)
-    {
-        GameState.SetState(GameStatus.LoadingNewScene);
-        ExecuteSceneTransition(sceneName);
-        GameState.SetState(GameStatus.None);
-    }
+        private IEnumerator PerfomLoadSceneAsync(SceneField nextScene)
+        {
+            OnSceneTransitionStart?.Invoke();
 
-    private void ExecuteSceneTransition(SceneName sceneName)
-    {
-        StartCoroutine(PerfomLoadSceneAsync(FindScenePerName(sceneName)));
-    }
+            yield return StartCoroutine(SceneTransitionUIAnimation.SceneTransitionUI.ZoomInCoroutine());
+            yield return StartCoroutine(LoadSceneAsyncCoroutine(nextScene));
+            yield return StartCoroutine(SceneTransitionUIAnimation.SceneTransitionUI.ZoomOutCoroutine());
+        }
 
-    private IEnumerator PerfomLoadSceneAsync(SceneField nextScene)
-    {
-        yield return StartCoroutine(SceneTransitionAnimation.Instance.SceneTransitionUI.ZoomInCoroutine());
-        yield return StartCoroutine(LoadSceneAsyncCoroutine(nextScene));
-        CurrentScene = nextScene;
-        yield return StartCoroutine(SceneTransitionAnimation.Instance.SceneTransitionUI.ZoomOutCoroutine());
-    }
+        private IEnumerator LoadSceneAsyncCoroutine(SceneField sceneField)
+        {
+            AsyncLoad = SceneManager.LoadSceneAsync(sceneField);
+            CurrentScene = sceneField;
 
-    private IEnumerator LoadSceneAsyncCoroutine(SceneField sceneField)
-    {
-        AsyncLoad = SceneManager.LoadSceneAsync(sceneField);
+            OnSceneLoading?.Invoke();
 
-        AsyncLoad.allowSceneActivation = false;
+            while (!AsyncLoad.isDone)
+            {
+                yield return null;
+            }
 
-        yield return new WaitForSeconds(1f);
+            OnSceneLoaded?.Invoke();
 
-        AsyncLoad.allowSceneActivation = true;
-
-        //wait until the asynchronous scene fully loads
-        while (!AsyncLoad.isDone)
-            yield return null;
+            yield return new WaitForSeconds(1f); // Tempo para carregar tudo antes da cena for exposta
+        }
     }
 }

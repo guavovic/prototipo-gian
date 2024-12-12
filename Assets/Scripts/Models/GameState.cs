@@ -1,25 +1,19 @@
 using UnityEngine;
 
-public enum GameStatus
+namespace Prototype.Models
 {
-    None,
-    Playing,
-    Paused,
-    InMenu,
-    LoadingNewScene
-}
-
-public static class GameState
-{
-    public static GameStatus CurrentStatus { get; private set; } = GameStatus.None;
-
-    public static void SetState(GameStatus status)
+    public class GameState
     {
-        CurrentStatus = status;
-#if UNITY_EDITOR
-        Debug.Log($"Game state changed to: {CurrentStatus}");
-#endif
-    }
+        public GameStatus CurrentStatus { get; private set; } = GameStatus.None;
 
-    public static bool IsPaused => CurrentStatus == GameStatus.Paused;
+        public void SetState(GameStatus status)
+        {
+            CurrentStatus = status;
+#if UNITY_EDITOR
+            Debug.Log($"Game state changed to: {CurrentStatus}");
+#endif
+        }
+
+        public bool IsPaused => CurrentStatus != GameStatus.Playing;
+    }
 }
