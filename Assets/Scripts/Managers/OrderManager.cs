@@ -8,7 +8,7 @@ namespace Prototype.Managers
 {
     public sealed class OrderManager : MonoBehaviour
     {
-        [SerializeField] private VehicleCharacteristicsData[] characteristicsData;
+        public List<VehicleCharacteristicsData> vr;
 
         private readonly List<Order> _orders = new List<Order>();
 
@@ -62,10 +62,13 @@ namespace Prototype.Managers
             int id = _orders.Count;
 
             var vehicleCharacteristicsDatas = new VehicleCharacteristicsData[Random.Range(GameManager.MIN_VEHICLE_COUNT, GameManager.MAX_VEHICLE_COUNT)];
+            vr = new List<VehicleCharacteristicsData>();
+
 
             for (int i = 0; i < vehicleCharacteristicsDatas.Length; i++)
             {
-                vehicleCharacteristicsDatas[i] = characteristicsData[Random.Range(0, characteristicsData.Length)];
+                vr = DataManager.Instance.GetData<VehicleCharacteristicsData>();
+                vehicleCharacteristicsDatas[i] = vr[Random.Range(0, vr.Count)];
             }
 
             const float minResponseTimeLimit = 10f;

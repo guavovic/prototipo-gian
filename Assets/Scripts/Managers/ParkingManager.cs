@@ -10,33 +10,38 @@ namespace Prototype.Managers
 
         private int _carsDelivered = 0;
 
-        private void Awake()
-        {
-            OrganizeParking();
-        }
-
         private void OnEnable()
         {
             VehicleDeliveryArea.OnCorrectVehicleParked += DeliverVehicle;
         }
+
+        private void Start()
+        {
+            OrganizeParkingAreasForVehicleDelivery();
+
+        }
+
 
         private void OnDisable()
         {
             VehicleDeliveryArea.OnCorrectVehicleParked -= DeliverVehicle;
         }
 
-        private void OrganizeParking()
+        private void OrganizeParkingAreasForVehicleDelivery()
         {
             VehiclesNeeded = GameManager.CurrentOrder.Items.Length;
-
             var vehicleDeliveryAreas = FindObjectsOfType<VehicleDeliveryArea>();
-
             vehicleDeliveryAreas.ToList().ForEach(vehicleDeliveryArea => vehicleDeliveryArea.gameObject.SetActive(false));
 
             for (int i = 0; i < VehiclesNeeded; i++)
             {
                 vehicleDeliveryAreas[i].gameObject.SetActive(true);
             }
+        }
+
+        private void Setup()
+        {
+                   
         }
 
         private void DeliverVehicle()

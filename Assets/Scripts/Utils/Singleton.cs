@@ -6,16 +6,6 @@ namespace Prototype.Utils
     {
         private static T _instance;
 
-        [SerializeField] private bool dontDestroyOnLoad;
-
-        protected virtual void Awake()
-        {
-            if (Instance is Singleton<T> singletonInstance && singletonInstance.dontDestroyOnLoad)
-            {
-                DontDestroyOnLoad(_instance);
-            }
-        }
-
         public static T Instance
         {
             get
@@ -50,6 +40,27 @@ namespace Prototype.Utils
                 _instance = obj.AddComponent<T>();
 
                 return _instance;
+            }
+        }
+
+        [SerializeField] private bool dontDestroyOnLoad;
+
+        protected virtual void Awake()
+        {
+            if (_instance == null)
+            {
+                _instance = this as T;
+            }
+
+            if (_instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            if (dontDestroyOnLoad)
+            {
+                DontDestroyOnLoad(gameObject);
             }
         }
     }

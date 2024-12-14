@@ -1,23 +1,27 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Prototype.Controllers
 {
-
     public sealed class VehicleController : Models.Vehicle, Models.IInteractable
     {
         private Vector3 _inputDirection;
 
         public bool IsBlocked { get; private set; }
         public bool IsDriving { get; private set; }
+
         public Vector3 InteractionPoint { get; set; }
 
         public void Interact()
         {
             if (IsBlocked)
                 return;
+
+            if (IsDriving)
+            {
+                ExitVehicle();
+                return;
+            }
 
             IsDriving = true;
         }

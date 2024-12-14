@@ -48,7 +48,7 @@ namespace Prototype.Models
         {
             foreach (var wheel in wheels)
             {
-                wheel.wheelCollider.motorTorque = inputDirection.z * 50 * MaxAcceleration * Time.deltaTime;
+                wheel.wheelCollider.motorTorque = inputDirection.z * 100 * MaxAcceleration * Time.deltaTime;
 
             }
         }
