@@ -15,6 +15,11 @@ namespace Prototype.UI
 
         private void Start()
         {
+            InitializaComponents();
+        }
+
+        private void InitializaComponents()
+        {
             if (circleMask != null)
             {
                 circleMask.localScale = Vector3.zero;

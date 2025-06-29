@@ -6,31 +6,50 @@ namespace Prototype.Managers
 {
     public sealed class GameManager : Singleton<GameManager>
     {
-        public const int MIN_VEHICLE_COUNT = 2;
-        public const int MAX_VEHICLE_COUNT = 6;
-        public const int MAXIMUM_ACTIVE_ORDERS_SIMULTANEOUSLY = 3;
-
         public static Order CurrentOrder { get; private set; }
         public static void SetCurrentOrderSelected(Order order) => CurrentOrder = order;
-
+        public SceneName CurrentScene { get; private set; }
         public static GameState GameState { get; private set; } = new GameState();
 
-        public static event Action OnGameStarted;
+        public static event Action OnOfficeSceneStarted;
+        public static event Action OnParkingSceneStarted;
 
         private void Start()
         {
-            StartGame();
+            // temporario
+            SceneLoaded(SceneName.Office);
         }
 
-        public void StartGame()
+        private void OnEnable()
         {
-            GameState.SetState(GameStatus.Playing);
-            OnGameStarted?.Invoke();
+            SceneLoaderManager.OnSceneLoaded += SceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            SceneLoaderManager.OnSceneLoaded -= SceneLoaded;
         }
 
         public static void SwitchScene(SceneName sceneName)
         {
             SceneLoaderManager.Instance.InitializeSceneTransition(sceneName);
+        }
+
+        private void SceneLoaded(SceneName scene)
+        {
+            CurrentScene = scene;
+            GameState.SetState(GameStatus.Playing);
+
+            switch (CurrentScene)
+            {
+                case SceneName.Office:
+                    OnOfficeSceneStarted?.Invoke();
+                    break;
+
+                case SceneName.Parking:
+                    OnParkingSceneStarted?.Invoke();
+                    break;
+            }
         }
     }
 }

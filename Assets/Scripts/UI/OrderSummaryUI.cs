@@ -33,16 +33,18 @@ namespace Prototype.UI
 
         private void Awake()
         {
+            InitializeComponents();
+        }
+
+        private void InitializeComponents()
+        {
             _orderUIs = new OrderUI[6];
 
             for (int i = 0; i < _orderUIs.Length; i++)
             {
                 _orderUIs[i] = Instantiate(orderUIPrefab, orderUIsPanelParent);
             }
-        }
 
-        private void Start()
-        {
             orderSummaryPanel.SetActive(false);
         }
 

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca838a430e973a446900d88c017bd7c6, type: 3}
   m_Name: VehicleCharacteristicsData 8
   m_EditorClassIdentifier: 
-  Name: 
+  Name: White
   Sprite: {fileID: 0}
-  Color: {r: 1, g: 0.59087425, b: 0, a: 0}
+  Material: {fileID: 2100000, guid: 70d4690cee6393c43a927176c35ce602, type: 2}

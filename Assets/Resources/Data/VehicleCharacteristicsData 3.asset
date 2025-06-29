@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca838a430e973a446900d88c017bd7c6, type: 3}
   m_Name: VehicleCharacteristicsData 3
   m_EditorClassIdentifier: 
-  Name: 
+  Name: Cian
   Sprite: {fileID: 0}
-  Color: {r: 1, g: 0, b: 0, a: 0}
+  Material: {fileID: 2100000, guid: 47103d8fae1240c4091b74cf06a5a2e6, type: 2}

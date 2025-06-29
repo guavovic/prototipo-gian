@@ -8,30 +8,44 @@ namespace Prototype.Managers
 {
     public sealed class OrderManager : MonoBehaviour
     {
-        public List<VehicleCharacteristicsData> vr;
+        public const int MAXIMUM_ACTIVE_ORDERS_SIMULTANEOUSLY = 3;
+        public const int MIN_VEHICLE_COUNT_PER_ORDER = 2;
+        public const int MAX_VEHICLE_COUNT_PER_ORDER = 6;
 
         private readonly List<Order> _orders = new List<Order>();
+        private readonly List<VehicleCharacteristicsData> _vehicleCharacteristicsDatas = new List<VehicleCharacteristicsData>();
 
         public static event System.Action<Order> OnNewOrderGenerated;
 
+        private void Start()
+        {
+            InitializeVehicleData();
+        }
+
         private void OnEnable()
         {
-            GameManager.OnGameStarted += StartOrderGeneration;
+            GameManager.OnOfficeSceneStarted += StartOrderGeneration;
         }
 
         private void OnDisable()
         {
-            GameManager.OnGameStarted -= StartOrderGeneration;
+            GameManager.OnOfficeSceneStarted -= StartOrderGeneration;
+        }
+
+        private void InitializeVehicleData()
+        {
+            _vehicleCharacteristicsDatas.AddRange(DataManager.Instance.GetData<VehicleCharacteristicsData>());
         }
 
         public void StartOrderGeneration()
         {
+            StopAllCoroutines();
             StartCoroutine(GenerateOrderRoutine());
         }
 
         public void StopOrderGeneration()
         {
-            StopCoroutine(GenerateOrderRoutine());
+            StopAllCoroutines();
         }
 
         private IEnumerator GenerateOrderRoutine()
@@ -40,9 +54,9 @@ namespace Prototype.Managers
             {
                 yield return new WaitForSeconds(Random.Range(2f, 4f));
 
-                while (GameManager.GameState.IsPaused)
+                if (GameManager.GameState.IsPaused)
                 {
-                    yield return null;
+                    yield return new WaitWhile(() => GameManager.GameState.IsPaused);
                 }
 
                 if (CanGenerateOrder())
@@ -52,41 +66,37 @@ namespace Prototype.Managers
             }
         }
 
-        private bool CanGenerateOrder()
-        {
-            return _orders.Count < GameManager.MAXIMUM_ACTIVE_ORDERS_SIMULTANEOUSLY && OrderNotificationUIManager.HasAvailablePosition();
-        }
+        private bool CanGenerateOrder() =>
+            _orders.Count < MAXIMUM_ACTIVE_ORDERS_SIMULTANEOUSLY && OrderNotificationUIManager.HasAvailablePosition();
 
         private void GenerateOrder()
         {
+            const float minResponseTime = 10f;
+            const float maxResponseTime = 20f;
+
             int id = _orders.Count;
+            int vehicleCount = Random.Range(MIN_VEHICLE_COUNT_PER_ORDER, MAX_VEHICLE_COUNT_PER_ORDER);
 
-            var vehicleCharacteristicsDatas = new VehicleCharacteristicsData[Random.Range(GameManager.MIN_VEHICLE_COUNT, GameManager.MAX_VEHICLE_COUNT)];
-            vr = new List<VehicleCharacteristicsData>();
+            var datas = new VehicleCharacteristicsData[vehicleCount];
 
-
-            for (int i = 0; i < vehicleCharacteristicsDatas.Length; i++)
+            for (int i = 0; i < vehicleCount; i++)
             {
-                vr = DataManager.Instance.GetData<VehicleCharacteristicsData>();
-                vehicleCharacteristicsDatas[i] = vr[Random.Range(0, vr.Count)];
+                datas[i] = _vehicleCharacteristicsDatas[Random.Range(0, _vehicleCharacteristicsDatas.Count)];
             }
 
-            const float minResponseTimeLimit = 10f;
-            const float maxResponseTimeLimit = 20f;
-            float responseTimeLimit = Random.Range(minResponseTimeLimit, maxResponseTimeLimit);
+            float responseTimeLimit = Random.Range(minResponseTime, maxResponseTime);
 
-            var newOrder = new Order(id, vehicleCharacteristicsDatas, responseTimeLimit);
-
+            var newOrder = new Order(id, datas, responseTimeLimit);
             _orders.Add(newOrder);
+
             OnNewOrderGenerated?.Invoke(newOrder);
             SubscribeOrderEvents(newOrder);
         }
 
         private void RemoveOrder(Order order)
         {
-            if (_orders.Contains(order))
+            if (_orders.Remove(order))
             {
-                _orders.Remove(order);
                 UnsubscribeOrderEvents(order);
             }
         }

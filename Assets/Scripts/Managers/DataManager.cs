@@ -2,12 +2,14 @@ using UnityEngine;
 using System.Collections.Generic;
 using Prototype.Utils;
 using System.Linq;
+using System;
 
 namespace Prototype.Data
 {
     public sealed class DataManager : Singleton<DataManager>
     {
-        private readonly Dictionary<string, List<ScriptableObject>> _dataDictionary = new Dictionary<string, List<ScriptableObject>>();
+        private const string _DATA_DIRECTORY = "Data";
+        private  readonly Dictionary<Type, List<ScriptableObject>> _dataDictionary = new Dictionary<Type, List<ScriptableObject>>();
 
         protected override void Awake()
         {
@@ -17,29 +19,26 @@ namespace Prototype.Data
 
         private void LoadAllData()
         {
-            ScriptableObject[] data = Resources.LoadAll<ScriptableObject>("Data");
+            ScriptableObject[] data = Resources.LoadAll<ScriptableObject>(_DATA_DIRECTORY);
 
             foreach (var item in data)
             {
-                if (_dataDictionary.ContainsKey(item.name))
+                Type itemType = item.GetType();
+
+                if (_dataDictionary.ContainsKey(itemType))
                 {
-                    _dataDictionary[item.name].Add(item);
+                    _dataDictionary[itemType].Add(item);
                 }
                 else
                 {
-                    _dataDictionary[item.name] = new List<ScriptableObject> { item };
+                    _dataDictionary[itemType] = new List<ScriptableObject> { item };
                 }
-            }
-
-            foreach (var item in _dataDictionary)
-            {
-                Debug.Log(item);
             }
         }
 
         public List<T> GetData<T>() where T : ScriptableObject
         {
-            string key = typeof(T).Name;
+            Type key = typeof(T);
 
             if (_dataDictionary.ContainsKey(key))
             {

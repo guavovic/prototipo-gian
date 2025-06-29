@@ -1,4 +1,9 @@
 using Prototype.Appliances;
+using Prototype.Controllers;
+using Prototype.Data;
+using Prototype.Models;
+using Prototype.Utils;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -6,51 +11,93 @@ namespace Prototype.Managers
 {
     public sealed class ParkingManager : MonoBehaviour
     {
-        public static int VehiclesNeeded { get; private set; }
+        private VehicleDeliveryArea[] _vehicleDeliveryAreas;
+        private VehicleController[] _vehicleControllers;
+        private Order _currentOrder;
+        private int _vehiclesNeeded;
+        private int _carsDelivered;
 
-        private int _carsDelivered = 0;
+        public static List<VehicleController> CorrectVehicles { get; private set; } = new List<VehicleController>();
+
+        private void Awake()
+        {
+            InitialiazeComponents();
+        }
+
+        private void InitialiazeComponents()
+        {
+            _vehicleDeliveryAreas = FindObjectsOfType<VehicleDeliveryArea>(true);
+            _vehicleControllers = FindObjectsOfType<VehicleController>(true);
+        }
 
         private void OnEnable()
         {
-            VehicleDeliveryArea.OnCorrectVehicleParked += DeliverVehicle;
+            GameManager.OnParkingSceneStarted += InitializeParking;
+            VehicleDeliveryArea.OnCorrectVehicleParked += HandleVehicleDelivery;
         }
-
-        private void Start()
-        {
-            OrganizeParkingAreasForVehicleDelivery();
-
-        }
-
 
         private void OnDisable()
         {
-            VehicleDeliveryArea.OnCorrectVehicleParked -= DeliverVehicle;
+            GameManager.OnParkingSceneStarted -= InitializeParking;
+            VehicleDeliveryArea.OnCorrectVehicleParked -= HandleVehicleDelivery;
         }
 
-        private void OrganizeParkingAreasForVehicleDelivery()
+        private void InitializeParking()
         {
-            VehiclesNeeded = GameManager.CurrentOrder.Items.Length;
-            var vehicleDeliveryAreas = FindObjectsOfType<VehicleDeliveryArea>();
-            vehicleDeliveryAreas.ToList().ForEach(vehicleDeliveryArea => vehicleDeliveryArea.gameObject.SetActive(false));
+            _currentOrder = GameManager.CurrentOrder;
+            _vehiclesNeeded = _currentOrder.Items.Length;
 
-            for (int i = 0; i < VehiclesNeeded; i++)
+            InitializeParkingAreas();
+            ConfigureParkingVehicles();
+        }
+
+        private void InitializeParkingAreas()
+        {
+            foreach (var area in _vehicleDeliveryAreas)
             {
-                vehicleDeliveryAreas[i].gameObject.SetActive(true);
+                area.gameObject.SetActive(false);
+            }
+
+            for (int i = 0; i < _vehiclesNeeded; i++)
+            {
+                _vehicleDeliveryAreas[i].gameObject.SetActive(true);
             }
         }
 
-        private void Setup()
+        private void ConfigureParkingVehicles()
         {
-                   
+            var vehicleData = DataManager.Instance.GetData<VehicleCharacteristicsData>();
+
+            // Filtrar os veículos disponíveis que não estão na ordem atual
+            var currentOrderItems = _currentOrder.Items.Select(item => item.Name).ToHashSet();
+            var availableRandomVehicles = vehicleData.Where(vehicle => !currentOrderItems.Contains(vehicle.Name)).ToList();
+
+            // Configurar veículos aleatórios para os que restaram
+            foreach (var vehicle in _vehicleControllers)
+            {
+                var randomCharacteristics = availableRandomVehicles[Random.Range(0, availableRandomVehicles.Count)];
+                vehicle.Setup("Random", randomCharacteristics.Material);
+            }
+
+            // Selecionar os veículos necessários para a ordem atual
+            var availableVehicles = _vehicleControllers.Take(_vehiclesNeeded).ToList();
+
+            foreach (var vehicle in availableVehicles)
+            {
+                var requiredCharacteristics = _currentOrder.Items[Random.Range(0, _currentOrder.Items.Length)];
+                vehicle.Setup(requiredCharacteristics.Name, requiredCharacteristics.Material);
+                CorrectVehicles.Add(vehicle);
+            }
         }
 
-        private void DeliverVehicle()
+
+        private void HandleVehicleDelivery()
         {
             _carsDelivered++;
 
-            if (_carsDelivered >= VehiclesNeeded)
+            if (_carsDelivered >= _vehiclesNeeded)
             {
-                Debug.Log("Entregou todos os carros");
+                Debug.Log("All vehicles have been delivered successfully.");
             }
         }
     }

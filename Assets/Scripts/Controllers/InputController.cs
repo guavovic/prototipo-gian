@@ -24,13 +24,13 @@ namespace Prototype.Controllers
         private PlayerController _playerController;
         private VehicleController _currentVehicleSelected;
 
-        public static bool IsControlling { get; private set; }
+        public bool IsControlling { get; private set; }
 
         public delegate void InteractAction(InputAction inputAction);
         public static event InteractAction OnMouseInteract;
         public static event InteractAction OnDriveInteract;
 
-        public static void BlockMouseInteractControl()
+        public void BlockMouseInteractControl()
         {
             IsControlling = true;
 #if UNITY_EDITOR
@@ -38,7 +38,7 @@ namespace Prototype.Controllers
 #endif
         }
 
-        public static void ReleaseMouseInteractControl()
+        public void ReleaseMouseInteractControl()
         {
             IsControlling = false;
 #if UNITY_EDITOR
@@ -87,10 +87,13 @@ namespace Prototype.Controllers
 
         private void OnMouseInteractPerformed(InputAction.CallbackContext context)
         {
+            Debug.Log("To controlando aqui");
+
             if (Managers.GameManager.GameState.IsPaused)
-            {
                 return;
-            }
+
+
+            Debug.Log("aqui também");
 
             if (IsControlling)
             {
@@ -99,6 +102,8 @@ namespace Prototype.Controllers
 #endif
                 return;
             }
+
+            Debug.Log("ta controlando");
 
             Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 

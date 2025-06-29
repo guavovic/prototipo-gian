@@ -13,12 +13,19 @@ namespace Prototype.Managers
     {
         [SerializeField] private List<SceneField> allSceneList;
 
-        public SceneField CurrentScene { get; private set; }
         public AsyncOperation AsyncLoad { get; private set; }
 
-        public event Action OnSceneTransitionStart;
-        public event Action OnSceneLoading;
-        public event Action OnSceneLoaded;
+        public static event Action<SceneName, SceneName> OnSceneTransitionStart;
+        public static event Action OnSceneLoading;
+        public static event Action<SceneName> OnSceneLoaded;
+
+        private void Start()
+        {
+            if ((SceneName)SceneManager.GetActiveScene().buildIndex != SceneName.Office)
+            {
+                InitializeSceneTransition(SceneName.Office);
+            }
+        }
 
         public SceneField FindScenePerName(SceneName sceneName)
         {
@@ -39,7 +46,7 @@ namespace Prototype.Managers
 
         private IEnumerator PerfomLoadSceneAsync(SceneField nextScene)
         {
-            OnSceneTransitionStart?.Invoke();
+            OnSceneTransitionStart?.Invoke((SceneName)SceneManager.GetActiveScene().buildIndex, nextScene.SceneName);
 
             yield return StartCoroutine(SceneTransitionUIAnimation.SceneTransitionUI.ZoomInCoroutine());
             yield return StartCoroutine(LoadSceneAsyncCoroutine(nextScene));
@@ -49,7 +56,6 @@ namespace Prototype.Managers
         private IEnumerator LoadSceneAsyncCoroutine(SceneField sceneField)
         {
             AsyncLoad = SceneManager.LoadSceneAsync(sceneField);
-            CurrentScene = sceneField;
 
             OnSceneLoading?.Invoke();
 
@@ -58,7 +64,7 @@ namespace Prototype.Managers
                 yield return null;
             }
 
-            OnSceneLoaded?.Invoke();
+            OnSceneLoaded?.Invoke(sceneField.SceneName);
 
             yield return new WaitForSeconds(1f); // Tempo para carregar tudo antes da cena for exposta
         }

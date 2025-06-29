@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca838a430e973a446900d88c017bd7c6, type: 3}
   m_Name: VehicleCharacteristicsData 4
   m_EditorClassIdentifier: 
-  Name: 
+  Name: Green
   Sprite: {fileID: 0}
-  Color: {r: 0, g: 0, b: 1, a: 0}
+  Material: {fileID: 2100000, guid: d23011118955d4e409389aeb90c824e5, type: 2}

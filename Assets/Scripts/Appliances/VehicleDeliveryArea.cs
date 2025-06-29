@@ -1,4 +1,5 @@
 using Prototype.Controllers;
+using Prototype.Managers;
 using System;
 using UnityEngine;
 
@@ -13,29 +14,27 @@ namespace Prototype.Appliances
         [SerializeField] private Material wrongVehicleParkeMaterial;
         [SerializeField] private Material correctVehicleParkedMaterial;
 
-        public bool IsOccupied { get; private set; }
-
         private MeshRenderer _meshRenderer;
+
+        public bool IsOccupied { get; private set; }
 
         public static event Action OnCorrectVehicleParked;
 
         private void Start()
         {
             InitializeComponents();
-            SetMaterial(noVehicleParkedMaterial);
         }
 
         private void InitializeComponents()
         {
             _meshRenderer = GetComponent<MeshRenderer>();
+            SetMaterial(noVehicleParkedMaterial);
         }
 
         private void OnTriggerEnter(Collider other)
         {
             if (IsOccupied)
-            {
                 return;
-            }
 
             if (other.TryGetComponent<VehicleController>(out var vehicle))
             {
@@ -46,9 +45,7 @@ namespace Prototype.Appliances
         private void OnTriggerStay(Collider other)
         {
             if (IsOccupied)
-            {
                 return;
-            }
 
             if (other.TryGetComponent<VehicleController>(out var vehicle))
             {
@@ -61,10 +58,6 @@ namespace Prototype.Appliances
             if (other.TryGetComponent<VehicleController>(out var vehicle))
             {
                 HandleVehicleExit(vehicle);
-            }
-            else
-            {
-                SetMaterial(noVehicleParkedMaterial);
             }
         }
 
@@ -88,7 +81,7 @@ namespace Prototype.Appliances
 
         private void HandleVehicleStay(VehicleController vehicle)
         {
-            if (IsCorrectVehicle(vehicle) && !vehicle.IsDriving)
+            if (IsCorrectVehicle(vehicle) && vehicle.IsDriving)
             {
                 IsOccupied = true;
                 vehicle.BlockEntry();
@@ -103,33 +96,27 @@ namespace Prototype.Appliances
         {
             if (IsCorrectVehicle(vehicle))
             {
-                if (IsOccupied)
-                {
-                    IsOccupied = false;
-                }
-
-                SetMaterial(correctVehicleParkedMaterial);
 #if UNITY_EDITOR
                 Debug.Log("Veículo correto saiu da área!");
 #endif
             }
             else
             {
-                SetMaterial(wrongVehicleParkeMaterial);
 #if UNITY_EDITOR
                 Debug.Log("Veículo incorreto saiu da área.");
 #endif
             }
+
+            IsOccupied = false;
+            SetMaterial(noVehicleParkedMaterial);
         }
 
         private bool IsCorrectVehicle(VehicleController vehicle)
         {
-            foreach (var item in Managers.GameManager.CurrentOrder.Items)
+            foreach (var correctVehicle in ParkingManager.CorrectVehicles)
             {
-                if (vehicle.Characteristics.Equals(item))
-                {
+                if (vehicle.Equals(correctVehicle))
                     return true;
-                }
             }
 
             return false;

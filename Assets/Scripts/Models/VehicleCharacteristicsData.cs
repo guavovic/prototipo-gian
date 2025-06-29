@@ -7,6 +7,6 @@ namespace Prototype.Data
     {
         public string Name;
         public Sprite Sprite;
-        public Color Color;
+        public Material Material;
     }
 }
